@@ -1,0 +1,1 @@
+export const users = [{name: 'ivan', surname: 'drago'}];
