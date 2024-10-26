@@ -17,16 +17,36 @@ wsServer.on('connection', (ws) => {
   ws.on('message', message => {
     const messageText = message.toString();
     const messageObj = JSON.parse(messageText);
-    
+    const dataObj = JSON.parse(messageObj.data);
+
+   
     // checking message type
     switch(messageObj.type){
       case messageType.REG:
-        const data = {
-                name: 'username',
-                index: '00001',
-                error: false,
-                errorText: ''
-        };
+      
+       const name = dataObj.name.trim().toLowerCase();
+       const password = dataObj.password;
+       
+       const data = {name, error: false, errorText: ''};
+    
+      const userInDb = users.find(user => user.name === name);
+        if(userInDb){
+          if(userInDb.password === password){
+            const index = users.findIndex(user => user.name === name);
+            data.index = index;
+          } else {
+            data.error = true;
+            data.errorText = "Wrong password!";
+            const index = users.findIndex(user => user.name === name);
+            data.index = index;
+          }
+        } else {
+          const newUser = {id: uuid(), name, password};
+          users.push(newUser);
+          const index = users.findIndex(user => user.name === name);
+          data.index = index;
+        }
+      
         
         const dataJson = JSON.stringify(data);
         
