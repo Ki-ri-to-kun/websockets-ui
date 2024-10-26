@@ -1,7 +1,7 @@
 import {WebSocketServer} from 'ws';
 
 import { httpServer } from './src/http_server/index.js';
-import {users} from './src/data/users.js';
+import {users, getSortedWinners} from './src/data/users.js';
 import {rooms, getAvailableRooms} from './src/data/rooms.js';
 import {messageType} from './src/messages/constants.js';
 
@@ -43,7 +43,7 @@ wsServer.on('connection', (ws) => {
         } else {
           const index = users.findIndex(user => user.name === name);
           data.index = index;
-          const newUser = {index, name, password};
+          const newUser = {index, name, password, wins: 0, websocket: ws};
           users.push(newUser);
           
         }
@@ -68,7 +68,26 @@ wsServer.on('connection', (ws) => {
           id: 0,
         };
 
-        ws.send(JSON.stringify(roomsListResponse));
+        
+         users.forEach(user => {
+          if(user.websocket) user.websocket.send(JSON.stringify(roomsListResponse));
+        });
+        
+        // update winners
+        const winnersArray = getSortedWinners().map(user => {
+          return {name: user.name, wins: user.wins};
+        });
+        const winnersArrayJson = JSON.stringify(winnersArray);
+        
+        const responseWinners = {
+          type: "update_winners",
+          data: winnersArrayJson,
+          id: 0,
+        };
+        users.forEach(user => {
+          if(user.websocket) user.websocket.send(JSON.stringify(responseWinners));
+        });
+        
         
         break;
       default: 
