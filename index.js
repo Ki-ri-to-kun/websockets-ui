@@ -1,8 +1,8 @@
 import {WebSocketServer} from 'ws';
-import {v4 as uuid} from 'uuid';
 
 import { httpServer } from './src/http_server/index.js';
 import {users} from './src/data/users.js';
+import {rooms, getAvailableRooms} from './src/data/rooms.js';
 import {messageType} from './src/messages/constants.js';
 
 
@@ -29,7 +29,7 @@ wsServer.on('connection', (ws) => {
        
        const data = {name, error: false, errorText: ''};
     
-      const userInDb = users.find(user => user.name === name);
+       const userInDb = users.find(user => user.name === name);
         if(userInDb){
           if(userInDb.password === password){
             const index = users.findIndex(user => user.name === name);
@@ -41,29 +41,41 @@ wsServer.on('connection', (ws) => {
             data.index = index;
           }
         } else {
-          const newUser = {id: uuid(), name, password};
-          users.push(newUser);
           const index = users.findIndex(user => user.name === name);
           data.index = index;
+          const newUser = {index, name, password};
+          users.push(newUser);
+          
         }
       
-        
         const dataJson = JSON.stringify(data);
         
-         const response =  {
+        const response = {
           type: 'reg',
           data: dataJson,
           id: 0
         };
         
         ws.send(JSON.stringify(response));
+        
+        // update room 
+        const roomsData = getAvailableRooms(); 
+        const roomsDataJson = JSON.stringify(roomsData);
+        
+        const roomsListResponse = {
+          type: "update_room",
+          data: roomsDataJson,
+          id: 0,
+        };
+
+        ws.send(JSON.stringify(roomsListResponse));
+        
         break;
       default: 
         console.log('unknown command');
         console.log(messageObj.type);
     }
     
-   
   });
   ws.send(JSON.stringify('websocket connected!'));
 });
