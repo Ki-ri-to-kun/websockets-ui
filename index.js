@@ -2,7 +2,7 @@ import {WebSocketServer} from 'ws';
 
 import { httpServer } from './src/http_server/index.js';
 import {users, getSortedWinners, updateWinners} from './src/data/users.js';
-import {rooms, getAvailableRooms, updateAvailableRooms} from './src/data/rooms.js';
+import {rooms, getAvailableRooms, updateAvailableRooms, addUserToRoom} from './src/data/rooms.js';
 import {messageType} from './src/messages/constants.js';
 
 
@@ -15,9 +15,9 @@ const wsServer = new WebSocketServer({noServer: true});
 
 wsServer.on('connection', (ws) => {
   ws.on('message', message => {
-    const messageText = message.toString();
+     const messageText = message.toString();
      const messageObj = JSON.parse(messageText);
-
+     const me = users.find(u => u.websocket === ws);
    
     // checking message type
     switch(messageObj.type){
@@ -67,11 +67,17 @@ wsServer.on('connection', (ws) => {
         break;
       case messageType.CREATE_ROOM:
         const roomId = rooms.size + 1;
-        const me = users.find(u => u.websocket === ws);
         rooms.set(roomId, [{name: me.name, index: me.index}]);
         
         updateAvailableRooms();
         break;
+      case messageType.ADD_USER_TO_ROOM:
+        const roomIndex = JSON.parse(messageObj.data).indexRoom;
+      
+        addUserToRoom(roomIndex, me);
+        updateAvailableRooms();
+        
+      break;
       default: 
         console.log('unknown command');
         console.log(messageObj.type);

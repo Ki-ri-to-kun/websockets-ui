@@ -31,7 +31,6 @@ export const getAvailableRooms = () => {
 
 
 export const updateAvailableRooms = () => {
-  // update room 
         const roomsData = getAvailableRooms(); 
         const roomsDataJson = JSON.stringify(roomsData);
         
@@ -44,4 +43,12 @@ export const updateAvailableRooms = () => {
          users.forEach(user => {
           if(user.websocket) user.websocket.send(JSON.stringify(roomsListResponse));
         });
+};
+
+
+export const addUserToRoom = (roomId, user) => {
+  const oldUser = rooms.get(roomId);
+  const newUsers = [...oldUser, user];
+  rooms.set(roomId, newUsers);
+  
 };
