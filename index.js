@@ -1,8 +1,9 @@
 import {WebSocketServer} from 'ws';
+import {v4 as uuid} from 'uuid';
 
 import { httpServer } from './src/http_server/index.js';
 import {users, getSortedWinners, updateWinners} from './src/data/users.js';
-import {rooms, getAvailableRooms, updateAvailableRooms, addUserToRoom} from './src/data/rooms.js';
+import {rooms, getAvailableRooms, updateAvailableRooms, addUserToRoom, sendMessageToRoom} from './src/data/rooms.js';
 import {messageType} from './src/messages/constants.js';
 
 
@@ -61,7 +62,6 @@ wsServer.on('connection', (ws) => {
         
         updateAvailableRooms();
         
-        // update winners
         updateWinners();
         
         break;
@@ -76,6 +76,17 @@ wsServer.on('connection', (ws) => {
       
         addUserToRoom(roomIndex, me);
         updateAvailableRooms();
+        
+        const roomDataJson = JSON.stringify({
+            idGame: uuid(),  
+            idPlayer: me.index,  
+          });
+        const responseCreateGame = {
+          type: "create_game", 
+          data: roomDataJson,
+          id: 0,
+        };
+        sendMessageToRoom(roomIndex, responseCreateGame);
         
       break;
       default: 

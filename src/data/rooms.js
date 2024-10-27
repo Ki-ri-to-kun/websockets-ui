@@ -48,7 +48,15 @@ export const updateAvailableRooms = () => {
 
 export const addUserToRoom = (roomId, user) => {
   const oldUser = rooms.get(roomId);
-  const newUsers = [...oldUser, user];
+  const newUsers = [...oldUser, {name: user.name, index: user.index}];
   rooms.set(roomId, newUsers);
   
+};
+
+export const sendMessageToRoom = (roomId, message) => {
+  const usersInRoom = rooms.get(roomId);
+  usersInRoom.forEach(user => {
+    const userWithSocket = users.find(u => u.index === user.index);
+    userWithSocket.websocket.send(JSON.stringify(message));
+  });
 };
