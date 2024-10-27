@@ -1,8 +1,8 @@
 import {WebSocketServer} from 'ws';
 
 import { httpServer } from './src/http_server/index.js';
-import {users, getSortedWinners} from './src/data/users.js';
-import {rooms, getAvailableRooms} from './src/data/rooms.js';
+import {users, getSortedWinners, updateWinners} from './src/data/users.js';
+import {rooms, getAvailableRooms, updateAvailableRooms} from './src/data/rooms.js';
 import {messageType} from './src/messages/constants.js';
 
 
@@ -16,14 +16,15 @@ const wsServer = new WebSocketServer({noServer: true});
 wsServer.on('connection', (ws) => {
   ws.on('message', message => {
     const messageText = message.toString();
-    const messageObj = JSON.parse(messageText);
-    const dataObj = JSON.parse(messageObj.data);
+     const messageObj = JSON.parse(messageText);
 
    
     // checking message type
     switch(messageObj.type){
       case messageType.REG:
       
+     
+      const dataObj = JSON.parse(messageObj.data);
        const name = dataObj.name.trim().toLowerCase();
        const password = dataObj.password;
        
@@ -41,10 +42,10 @@ wsServer.on('connection', (ws) => {
             data.index = index;
           }
         } else {
-          const index = users.findIndex(user => user.name === name);
-          data.index = index;
+          const index = users.length;
           const newUser = {index, name, password, wins: 0, websocket: ws};
           users.push(newUser);
+          data.index = index;
           
         }
       
@@ -58,37 +59,18 @@ wsServer.on('connection', (ws) => {
         
         ws.send(JSON.stringify(response));
         
-        // update room 
-        const roomsData = getAvailableRooms(); 
-        const roomsDataJson = JSON.stringify(roomsData);
-        
-        const roomsListResponse = {
-          type: "update_room",
-          data: roomsDataJson,
-          id: 0,
-        };
-
-        
-         users.forEach(user => {
-          if(user.websocket) user.websocket.send(JSON.stringify(roomsListResponse));
-        });
+        updateAvailableRooms();
         
         // update winners
-        const winnersArray = getSortedWinners().map(user => {
-          return {name: user.name, wins: user.wins};
-        });
-        const winnersArrayJson = JSON.stringify(winnersArray);
+        updateWinners();
         
-        const responseWinners = {
-          type: "update_winners",
-          data: winnersArrayJson,
-          id: 0,
-        };
-        users.forEach(user => {
-          if(user.websocket) user.websocket.send(JSON.stringify(responseWinners));
-        });
+        break;
+      case messageType.CREATE_ROOM:
+        const roomId = rooms.size + 1;
+        const me = users.find(u => u.websocket === ws);
+        rooms.set(roomId, [{name: me.name, index: me.index}]);
         
-        
+        updateAvailableRooms();
         break;
       default: 
         console.log('unknown command');

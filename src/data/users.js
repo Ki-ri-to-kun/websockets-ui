@@ -20,3 +20,20 @@ export const users = [
    
    return users;
  };
+ 
+ 
+ export const updateWinners = () => {
+     const winnersArray = getSortedWinners().map(user => {
+          return {name: user.name, wins: user.wins};
+        });
+        const winnersArrayJson = JSON.stringify(winnersArray);
+        
+        const responseWinners = {
+          type: "update_winners",
+          data: winnersArrayJson,
+          id: 0,
+        };
+        users.forEach(user => {
+          if(user.websocket) user.websocket.send(JSON.stringify(responseWinners));
+        });
+ };

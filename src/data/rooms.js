@@ -1,3 +1,6 @@
+import {users} from './users.js';
+
+
 export const rooms = new Map([
 [1, [{name: 'person1', index: 0}, {name: 'person2', index: 1}]],
 [2, [{name: 'person3', index: 2}, {name: 'person4', index: 3}]],
@@ -24,4 +27,21 @@ export const getAvailableRooms = () => {
   };
 
   return availableRooms;
+};
+
+
+export const updateAvailableRooms = () => {
+  // update room 
+        const roomsData = getAvailableRooms(); 
+        const roomsDataJson = JSON.stringify(roomsData);
+        
+        const roomsListResponse = {
+          type: "update_room",
+          data: roomsDataJson,
+          id: 0,
+        };
+
+         users.forEach(user => {
+          if(user.websocket) user.websocket.send(JSON.stringify(roomsListResponse));
+        });
 };
