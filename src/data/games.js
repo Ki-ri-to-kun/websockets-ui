@@ -95,6 +95,25 @@ export const attack = ({gameId, indexPlayer, x, y} ) => {
     y
   };
   
+  if(status === 'killed'){
+   const ship = findShipByCoordinates({gameId, indexPlayer, x, y});
+   const cellsAroundKilledShip = calculateCellsAroundKilledShip(ship);
+   
+   return () => {
+      attackFeedback(responseObject);
+      cellsAroundKilledShip.forEach(cell => {
+      const responseMiss = {
+        gameId,
+        status: 'miss',
+        currentPlayer: indexPlayer,
+        x: cell.x,
+        y: cell.y
+      };
+     attackFeedback(responseMiss);
+   });
+   };
+  }
+  
   return () => {
     attackFeedback(responseObject);
   };
@@ -158,3 +177,92 @@ export const isPlayerTurn = (gameId, idPlayer) => {
   const usersInGame = games.get(gameId);
   return usersInGame.find(user => user.idPlayer === idPlayer).hisTurn;
 };
+
+
+const calculateCellsAroundKilledShip = ({position, direction, length}) => {
+  const cellsAroundShip = [];
+  if(direction){
+    if(position.y - 1 >= 0){
+      const beforeStart = {
+        x: position.x,
+        y: position.y - 1
+      };
+      cellsAroundShip.push(beforeStart);
+    }
+    if(position.y + length <= 9){
+        const afterEnd = {
+        x: position.x,
+        y: position.y + length
+      };
+      cellsAroundShip.push(afterEnd);
+    }
+    for(let i = position.y; i < position.y + length; i++){
+      if(position.x - 1 >= 0){
+        cellsAroundShip.push({
+          x: position.x - 1,
+          y: i
+        });
+      }
+      if(position.x + 1 <= 9){
+        cellsAroundShip.push({
+          x: position.x + 1,
+          y: i
+        });
+      }
+    }
+  } else {
+    //horizontal
+    if(position.x - 1 >= 0){
+      const beforeStart = {
+        x: position.x - 1,
+        y: position.y
+      };
+      cellsAroundShip.push(beforeStart);
+    }
+    if(position.x + length <= 9){
+        const afterEnd = {
+        x: position.x + length,
+        y: position.y 
+      };
+      cellsAroundShip.push(afterEnd);
+    }
+     for(let i = position.x; i < position.x + length; i++){
+      if(position.y - 1 >= 0){
+        cellsAroundShip.push({
+          x: i,
+          y: position.y - 1
+        });
+      }
+      if(position.y + 1 <= 9){
+        cellsAroundShip.push({
+          x: i,
+          y: position.y + 1
+        });
+      }
+    }
+  }
+  
+  return cellsAroundShip;
+};
+
+const findShipByCoordinates = ({gameId, indexPlayer, x, y}) => {
+  const usersInGame = games.get(gameId);
+  const enemy = usersInGame.find(user => user.idPlayer !== indexPlayer);
+  const killedShip = enemy.ships.find(ship => {
+    if(ship.direction){
+      // vertical
+      if(x === ship.position.x && y >= ship.position.y && y < ship.position.y + ship.length){
+        return ship;
+      }
+      
+    } else {
+      // horizontal
+      if(y === ship.position.y && x >= ship.position.x && x < ship.position.x + ship.length){
+        return ship;
+      }
+    }
+  });
+  
+  return killedShip;
+};
+
