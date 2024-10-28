@@ -13,5 +13,6 @@ export const messageType = {
   START_GAME: 'start_game',
   ATTACK: 'attack',
   TURN: 'turn',
-  FINISH: 'finish'
+  FINISH: 'finish',
+  RANDOM_ATTACK: 'randomAttack'
 };

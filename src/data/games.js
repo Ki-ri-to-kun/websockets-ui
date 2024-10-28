@@ -62,7 +62,7 @@ export const sendMessageToRoomByGameId = (gameId, message) => {
   });
 };
 
-export const attack = ({gameId, indexPlayer, x, y} ) => {
+export const attack = ({gameId, indexPlayer, x, y}) => {
   const usersInGame = games.get(gameId);
   let status = 'miss';
   
@@ -288,4 +288,66 @@ const isGameOver = (gameId, currentPlayer) => {
   const enemy = usersInGame.find(user => user.idPlayer !== currentPlayer);
   const liveShipIndex = enemy.ships.findIndex(ship => ship.hp > 0);
   return liveShipIndex === -1 ? true : false;
+};
+
+
+export const randomAttack = ({gameId, indexPlayer}) => {
+  const x = Math.floor(Math.random()* 10);
+  const y = Math.floor(Math.random()* 10);
+  const usersInGame = games.get(gameId);
+   
+  let status = 'miss';
+  
+  const enemy = usersInGame.find(user => user.idPlayer !== indexPlayer);
+  const enemyShips = enemy.ships;
+  
+  enemyShips.forEach(ship => {
+    if(ship.direction){
+      // vertical
+      if(x === ship.position.x && y >= ship.position.y && y < ship.position.y + ship.length){
+        ship.hp--;
+        status = ship.hp === 0 ? 'killed' : 'shot';
+      } 
+    } else {
+      // horizontal
+       if(y === ship.position.y && x >= ship.position.x && x < ship.position.x + ship.length){
+        ship.hp--;
+        status = ship.hp === 0 ? 'killed' : 'shot';
+      } 
+    }
+  });
+  
+   const responseObject = {
+    gameId,
+    status,
+    currentPlayer: indexPlayer,
+    x,
+    y,
+    isTurnChange: true
+  };
+  
+  if(status === 'killed'){
+   const ship = findShipByCoordinates({gameId, indexPlayer, x, y});
+   const cellsAroundKilledShip = calculateCellsAroundKilledShip(ship);
+   
+   return () => {
+      attackFeedback(responseObject);
+      cellsAroundKilledShip.forEach(cell => {
+      const responseMiss = {
+        gameId,
+        status: 'miss',
+        currentPlayer: indexPlayer,
+        x: cell.x,
+        y: cell.y,
+        isTurnChange: false
+      };
+     attackFeedback(responseMiss);
+   });
+   };
+  }
+  
+  
+   return () => {
+    attackFeedback(responseObject);
+  };
 };

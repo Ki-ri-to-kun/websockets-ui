@@ -6,7 +6,7 @@ import {users, getSortedWinners, updateWinners} from './src/data/users.js';
 import {rooms, getAvailableRooms, updateAvailableRooms, addUserToRoom,
         getPlayersIndexInRoom} from './src/data/rooms.js';
 import {games, addShipsToUserInGame, makeStartGameResponseJson, sendCreateGameResponse,
-        sendMessageToRoomByGameId, attack, turn, isPlayerTurn} from './src/data/games.js';
+        sendMessageToRoomByGameId, attack, turn, isPlayerTurn, randomAttack} from './src/data/games.js';
 import {messageType} from './src/messages/constants.js';
 
 
@@ -112,6 +112,13 @@ wsServer.on('connection', (ws) => {
           const attackFeedback = attack(attackData);
           attackFeedback();
         } 
+      break;
+      case messageType.RANDOM_ATTACK:
+      
+       const randomAttackData = JSON.parse(messageObj.data);
+       const attackFeedback = randomAttack(randomAttackData);
+       attackFeedback();
+       
       break;
       default: 
         console.log('unknown command');
