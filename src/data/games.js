@@ -213,14 +213,14 @@ const calculateCellsAroundKilledShip = ({position, direction, length}) => {
       };
       cellsAroundShip.push(afterEnd);
     }
-    for(let i = position.y; i < position.y + length; i++){
-      if(position.x - 1 >= 0){
+    for(let i = position.y - 1; i <= position.y + length; i++){
+      if(position.x - 1 >= 0 && i >= 0 && i <= 9){
         cellsAroundShip.push({
           x: position.x - 1,
           y: i
         });
       }
-      if(position.x + 1 <= 9){
+      if(position.x + 1 <= 9 && i>=0 && i <= 9){
         cellsAroundShip.push({
           x: position.x + 1,
           y: i
@@ -228,7 +228,8 @@ const calculateCellsAroundKilledShip = ({position, direction, length}) => {
       }
     }
   } else {
-    //horizontal
+    //horizontal 
+    
     if(position.x - 1 >= 0){
       const beforeStart = {
         x: position.x - 1,
@@ -243,14 +244,14 @@ const calculateCellsAroundKilledShip = ({position, direction, length}) => {
       };
       cellsAroundShip.push(afterEnd);
     }
-     for(let i = position.x; i < position.x + length; i++){
-      if(position.y - 1 >= 0){
+     for(let i = position.x - 1; i <= position.x + length; i++){
+      if(position.y - 1 >= 0 && i >= 0 && i <= 9){
         cellsAroundShip.push({
           x: i,
           y: position.y - 1
         });
       }
-      if(position.y + 1 <= 9){
+      if(position.y + 1 <= 9 && i >= 0 && i <= 9){
         cellsAroundShip.push({
           x: i,
           y: position.y + 1
