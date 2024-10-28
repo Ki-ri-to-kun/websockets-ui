@@ -23,7 +23,6 @@ export const getAvailableRooms = () => {
      };
      availableRooms.push(newRoom);
     }
-    
   };
 
   return availableRooms;
@@ -45,7 +44,6 @@ export const updateAvailableRooms = () => {
         });
 };
 
-
 export const addUserToRoom = (roomId, user) => {
   const oldUser = rooms.get(roomId);
   const newUsers = [...oldUser, {name: user.name, index: user.index}];
@@ -53,29 +51,8 @@ export const addUserToRoom = (roomId, user) => {
   
 };
 
-export const sendCreateGameMessageToRoom = (roomId, idGame) => {
-  const usersInRoom = rooms.get(roomId);
- // console.log('users in room ', usersInRoom);
-  usersInRoom.forEach(user => {
-    const userWithSocket = users.find(u => u.index === user.index);
-    
-    
-    
-     const roomDataJson = JSON.stringify({
-            idGame,  
-            idPlayer: user.index  
-          });
-        const responseCreateGame = {
-          type: "create_game", 
-          data: roomDataJson,
-          id: 0,
-        };
-    userWithSocket.websocket.send(JSON.stringify(responseCreateGame));
-    
-  });
-};
-
 export const getPlayersIndexInRoom = (roomId) => {
   return rooms.get(roomId).map(user => user.index);
 };
+
 

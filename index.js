@@ -3,9 +3,10 @@ import {v4 as uuid} from 'uuid';
 
 import { httpServer } from './src/http_server/index.js';
 import {users, getSortedWinners, updateWinners} from './src/data/users.js';
-import {rooms, getAvailableRooms, updateAvailableRooms, addUserToRoom, sendCreateGameMessageToRoom,
+import {rooms, getAvailableRooms, updateAvailableRooms, addUserToRoom,
         getPlayersIndexInRoom} from './src/data/rooms.js';
-import {games, addShipsToUserInGame} from './src/data/games.js';
+import {games, addShipsToUserInGame, makeStartGameResponseJson, sendCreateGameResponse,
+        sendMessageToRoomByGameId} from './src/data/games.js';
 import {messageType} from './src/messages/constants.js';
 
 
@@ -83,8 +84,8 @@ wsServer.on('connection', (ws) => {
         const playersIndex = getPlayersIndexInRoom(roomIndex);
         games.set(idGame, [{idPlayer: playersIndex[0]}, {idPlayer: playersIndex[1]}]);
         
-        sendCreateGameMessageToRoom(roomIndex, idGame);
-        rooms.delete(roomIndex);
+        sendCreateGameResponse(idGame);
+        //rooms.delete(roomIndex);
                 
       break;
       case messageType.ADD_SHIPS:
@@ -96,6 +97,9 @@ wsServer.on('connection', (ws) => {
       const ships = shipsData.ships;
       
       addShipsToUserInGame(gameId, playerId, ships);
+      
+      const res = makeStartGameResponseJson(gameId, playerId);
+      sendMessageToRoomByGameId(gameId, res);
       
       break;
       default: 
