@@ -1,5 +1,5 @@
 import {WebSocketServer} from 'ws';
-import {v4 as uuid} from 'uuid';
+import {randomUUID} from 'crypto'
 
 import { httpServer } from './src/http_server/index.js';
 import {users, getSortedWinners, updateWinners} from './src/data/users.js';
@@ -78,7 +78,7 @@ wsServer.on('connection', (ws) => {
         addUserToRoom(roomIndex, me);
         updateAvailableRooms();
         
-        const idGame = uuid();
+        const idGame = randomUUID();
         const idPlayer = me.index;
         
         const playersIndex = getPlayersIndexInRoom(roomIndex);
