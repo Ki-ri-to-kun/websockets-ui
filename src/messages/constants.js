@@ -11,5 +11,6 @@ export const messageType = {
   ADD_USER_TO_ROOM: 'add_user_to_room',
   ADD_SHIPS: 'add_ships',
   START_GAME: 'start_game',
-  ATTACK: 'attack'
+  ATTACK: 'attack',
+  TURN: 'turn'
 };

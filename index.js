@@ -6,7 +6,7 @@ import {users, getSortedWinners, updateWinners} from './src/data/users.js';
 import {rooms, getAvailableRooms, updateAvailableRooms, addUserToRoom,
         getPlayersIndexInRoom} from './src/data/rooms.js';
 import {games, addShipsToUserInGame, makeStartGameResponseJson, sendCreateGameResponse,
-        sendMessageToRoomByGameId, attack} from './src/data/games.js';
+        sendMessageToRoomByGameId, attack, turn, isPlayerTurn} from './src/data/games.js';
 import {messageType} from './src/messages/constants.js';
 
 
@@ -82,7 +82,7 @@ wsServer.on('connection', (ws) => {
         const idPlayer = me.index;
         
         const playersIndex = getPlayersIndexInRoom(roomIndex);
-        games.set(idGame, [{idPlayer: playersIndex[0]}, {idPlayer: playersIndex[1]}]);
+        games.set(idGame, [{idPlayer: playersIndex[0], hisTurn: true}, {idPlayer: playersIndex[1], hisTurn: false}]);
         
         sendCreateGameResponse(idGame);
         //rooms.delete(roomIndex);
@@ -98,16 +98,21 @@ wsServer.on('connection', (ws) => {
       
       addShipsToUserInGame(gameId, playerId, ships);
       
+      // start game
       const res = makeStartGameResponseJson(gameId, playerId);
       sendMessageToRoomByGameId(gameId, res);
       
+      turn(gameId, true);
+      
       break;
       case messageType.ATTACK:
-      
         const attackData = JSON.parse(messageObj.data);
-        const attackFeedback = attack(attackData);
-        attackFeedback();
-        
+          
+        if(isPlayerTurn(attackData.gameId, attackData.indexPlayer)){
+          const attackFeedback = attack(attackData);
+          attackFeedback();
+          turn(attackData.gameId);
+        } 
       break;
       default: 
         console.log('unknown command');

@@ -117,6 +117,45 @@ export const attackFeedback = ({status, currentPlayer, x, y}) => {
   
 };
 
+ export const turn = (gameId, firstMove = false) => {
+   const usersInGame = games.get(gameId);
+   
+   if(firstMove){
+     // start game
+    const playersTurn = usersInGame.find(user => user.hisTurn === true).idPlayer;
+     
+     const dataJson = JSON.stringify({
+       currentPlayer: playersTurn
+     });
+     const responseTurnJson = JSON.stringify({
+       type: messageType.TURN,
+       data: dataJson,
+       id: 0
+     });
+     
+     sendMessageToRoomByGameId(gameId, responseTurnJson);
+     
+     
+     console.log('игрок не задан, это старт игры ', playersTurn);
+   } else {
+     usersInGame.forEach(user => user.hisTurn = !user.hisTurn);
+     const playersTurn = usersInGame.find(user => user.hisTurn === true).idPlayer;
+     
+     const dataJson = JSON.stringify({
+       currentPlayer: playersTurn
+     });
+     const responseTurnJson = JSON.stringify({
+       type: messageType.TURN,
+       data: dataJson,
+       id: 0
+     });
+     
+     sendMessageToRoomByGameId(gameId, responseTurnJson);
+     console.log('игрок  задан, это НЕ старт игры ', playersTurn);
+   }
+ };
 
-
-
+export const isPlayerTurn = (gameId, idPlayer) => {
+  const usersInGame = games.get(gameId);
+  return usersInGame.find(user => user.idPlayer === idPlayer).hisTurn;
+};
