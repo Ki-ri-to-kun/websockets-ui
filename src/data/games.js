@@ -1,5 +1,5 @@
 import {messageType} from '../messages/constants.js';
-import {users} from './users.js';
+import {users, updateWinners} from './users.js';
 
 export const games = new Map();
 
@@ -70,8 +70,6 @@ export const attack = ({gameId, indexPlayer, x, y} ) => {
   const enemyShips = enemy.ships;
   
   enemyShips.forEach(ship => {
-   
-    
     if(ship.direction){
       // vertical
       if(x === ship.position.x && y >= ship.position.y && y < ship.position.y + ship.length){
@@ -92,7 +90,8 @@ export const attack = ({gameId, indexPlayer, x, y} ) => {
     status,
     currentPlayer: indexPlayer,
     x,
-    y
+    y,
+    isTurnChange: true
   };
   
   if(status === 'killed'){
@@ -107,7 +106,8 @@ export const attack = ({gameId, indexPlayer, x, y} ) => {
         status: 'miss',
         currentPlayer: indexPlayer,
         x: cell.x,
-        y: cell.y
+        y: cell.y,
+        isTurnChange: false
       };
      attackFeedback(responseMiss);
    });
@@ -119,7 +119,7 @@ export const attack = ({gameId, indexPlayer, x, y} ) => {
   };
 };
 
-export const attackFeedback = ({gameId, status, currentPlayer, x, y}) => {
+export const attackFeedback = ({gameId, status, currentPlayer, x, y, isTurnChange}) => {
   const dataJson = JSON.stringify({
     position: {x, y},
     currentPlayer,
@@ -134,14 +134,32 @@ export const attackFeedback = ({gameId, status, currentPlayer, x, y}) => {
   const userWithWebsocket = users.find(user => user.index === currentPlayer);
   userWithWebsocket.websocket.send(responseAttackJson);
   
-  if(status !== 'shot'){
+  if(status === 'killed'){
+   const gameIsFinished = isGameOver(gameId, currentPlayer);
+   if(gameIsFinished){
+     userWithWebsocket.wins++;
+     const dataJson = JSON.stringify({
+        winPlayer: currentPlayer
+     });
+     
+     const responseGameFinished = JSON.stringify({
+       type: messageType.FINISH,
+       data: dataJson,
+       id: 0,
+     });
+     
+     sendMessageToRoomByGameId(gameId, responseGameFinished);
+     updateWinners();
+   }
+  }
+  
+  if(status !== 'shot' && isTurnChange){
     turn(gameId);
   }
 };
 
  export const turn = (gameId, firstMove = false) => {
    const usersInGame = games.get(gameId);
-   
    if(firstMove){
      // start game
     const playersTurn = usersInGame.find(user => user.hisTurn === true).idPlayer;
@@ -159,7 +177,7 @@ export const attackFeedback = ({gameId, status, currentPlayer, x, y}) => {
    } else {
      usersInGame.forEach(user => user.hisTurn = !user.hisTurn);
      const playersTurn = usersInGame.find(user => user.hisTurn === true).idPlayer;
-     
+          
      const dataJson = JSON.stringify({
        currentPlayer: playersTurn
      });
@@ -177,7 +195,6 @@ export const isPlayerTurn = (gameId, idPlayer) => {
   const usersInGame = games.get(gameId);
   return usersInGame.find(user => user.idPlayer === idPlayer).hisTurn;
 };
-
 
 const calculateCellsAroundKilledShip = ({position, direction, length}) => {
   const cellsAroundShip = [];
@@ -266,3 +283,9 @@ const findShipByCoordinates = ({gameId, indexPlayer, x, y}) => {
   return killedShip;
 };
 
+const isGameOver = (gameId, currentPlayer) => {
+  const usersInGame = games.get(gameId);
+  const enemy = usersInGame.find(user => user.idPlayer !== currentPlayer);
+  const liveShipIndex = enemy.ships.findIndex(ship => ship.hp > 0);
+  return liveShipIndex === -1 ? true : false;
+};

@@ -12,5 +12,6 @@ export const messageType = {
   ADD_SHIPS: 'add_ships',
   START_GAME: 'start_game',
   ATTACK: 'attack',
-  TURN: 'turn'
+  TURN: 'turn',
+  FINISH: 'finish'
 };
