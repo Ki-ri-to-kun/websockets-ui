@@ -53,10 +53,29 @@ export const addUserToRoom = (roomId, user) => {
   
 };
 
-export const sendMessageToRoom = (roomId, message) => {
+export const sendCreateGameMessageToRoom = (roomId, idGame) => {
   const usersInRoom = rooms.get(roomId);
+ // console.log('users in room ', usersInRoom);
   usersInRoom.forEach(user => {
     const userWithSocket = users.find(u => u.index === user.index);
-    userWithSocket.websocket.send(JSON.stringify(message));
+    
+    
+    
+     const roomDataJson = JSON.stringify({
+            idGame,  
+            idPlayer: user.index  
+          });
+        const responseCreateGame = {
+          type: "create_game", 
+          data: roomDataJson,
+          id: 0,
+        };
+    userWithSocket.websocket.send(JSON.stringify(responseCreateGame));
+    
   });
 };
+
+export const getPlayersIndexInRoom = (roomId) => {
+  return rooms.get(roomId).map(user => user.index);
+};
+

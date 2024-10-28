@@ -3,7 +3,9 @@ import {v4 as uuid} from 'uuid';
 
 import { httpServer } from './src/http_server/index.js';
 import {users, getSortedWinners, updateWinners} from './src/data/users.js';
-import {rooms, getAvailableRooms, updateAvailableRooms, addUserToRoom, sendMessageToRoom} from './src/data/rooms.js';
+import {rooms, getAvailableRooms, updateAvailableRooms, addUserToRoom, sendCreateGameMessageToRoom,
+        getPlayersIndexInRoom} from './src/data/rooms.js';
+import {games, addShipsToUserInGame} from './src/data/games.js';
 import {messageType} from './src/messages/constants.js';
 
 
@@ -23,8 +25,7 @@ wsServer.on('connection', (ws) => {
     // checking message type
     switch(messageObj.type){
       case messageType.REG:
-      
-     
+       
       const dataObj = JSON.parse(messageObj.data);
        const name = dataObj.name.trim().toLowerCase();
        const password = dataObj.password;
@@ -47,7 +48,6 @@ wsServer.on('connection', (ws) => {
           const newUser = {index, name, password, wins: 0, websocket: ws};
           users.push(newUser);
           data.index = index;
-          
         }
       
         const dataJson = JSON.stringify(data);
@@ -77,17 +77,26 @@ wsServer.on('connection', (ws) => {
         addUserToRoom(roomIndex, me);
         updateAvailableRooms();
         
-        const roomDataJson = JSON.stringify({
-            idGame: uuid(),  
-            idPlayer: me.index,  
-          });
-        const responseCreateGame = {
-          type: "create_game", 
-          data: roomDataJson,
-          id: 0,
-        };
-        sendMessageToRoom(roomIndex, responseCreateGame);
+        const idGame = uuid();
+        const idPlayer = me.index;
         
+        const playersIndex = getPlayersIndexInRoom(roomIndex);
+        games.set(idGame, [{idPlayer: playersIndex[0]}, {idPlayer: playersIndex[1]}]);
+        
+        sendCreateGameMessageToRoom(roomIndex, idGame);
+        rooms.delete(roomIndex);
+                
+      break;
+      case messageType.ADD_SHIPS:
+      
+      const shipsData = JSON.parse(messageObj.data);
+      
+      const gameId = shipsData.gameId;
+      const playerId = shipsData.indexPlayer;
+      const ships = shipsData.ships;
+      
+      addShipsToUserInGame(gameId, playerId, ships);
+      
       break;
       default: 
         console.log('unknown command');

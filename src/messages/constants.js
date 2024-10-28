@@ -8,5 +8,6 @@ export const messageType = {
   UPDATE_ROOM: 'update_room',
   UPDATE_WINNERS: 'update_winners',
   CREATE_ROOM: 'create_room',
-  ADD_USER_TO_ROOM: 'add_user_to_room'
+  ADD_USER_TO_ROOM: 'add_user_to_room',
+  ADD_SHIPS: 'add_ships'
 };
