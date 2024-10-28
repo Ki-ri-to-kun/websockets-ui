@@ -111,7 +111,6 @@ wsServer.on('connection', (ws) => {
         if(isPlayerTurn(attackData.gameId, attackData.indexPlayer)){
           const attackFeedback = attack(attackData);
           attackFeedback();
-          turn(attackData.gameId);
         } 
       break;
       default: 
@@ -120,7 +119,7 @@ wsServer.on('connection', (ws) => {
     }
     
   });
-  ws.send(JSON.stringify('websocket connected!'));
+ // ws.send(JSON.stringify('websocket connected!'));
 });
 
 httpServer.on('upgrade', (req, socket, head) => {

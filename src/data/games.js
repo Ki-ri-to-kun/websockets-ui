@@ -88,6 +88,7 @@ export const attack = ({gameId, indexPlayer, x, y} ) => {
   });
   
   const responseObject = {
+    gameId,
     status,
     currentPlayer: indexPlayer,
     x,
@@ -99,8 +100,7 @@ export const attack = ({gameId, indexPlayer, x, y} ) => {
   };
 };
 
-
-export const attackFeedback = ({status, currentPlayer, x, y}) => {
+export const attackFeedback = ({gameId, status, currentPlayer, x, y}) => {
   const dataJson = JSON.stringify({
     position: {x, y},
     currentPlayer,
@@ -115,6 +115,9 @@ export const attackFeedback = ({status, currentPlayer, x, y}) => {
   const userWithWebsocket = users.find(user => user.index === currentPlayer);
   userWithWebsocket.websocket.send(responseAttackJson);
   
+  if(status !== 'shot'){
+    turn(gameId);
+  }
 };
 
  export const turn = (gameId, firstMove = false) => {
@@ -132,11 +135,8 @@ export const attackFeedback = ({status, currentPlayer, x, y}) => {
        data: dataJson,
        id: 0
      });
-     
+    
      sendMessageToRoomByGameId(gameId, responseTurnJson);
-     
-     
-     console.log('игрок не задан, это старт игры ', playersTurn);
    } else {
      usersInGame.forEach(user => user.hisTurn = !user.hisTurn);
      const playersTurn = usersInGame.find(user => user.hisTurn === true).idPlayer;
@@ -151,7 +151,6 @@ export const attackFeedback = ({status, currentPlayer, x, y}) => {
      });
      
      sendMessageToRoomByGameId(gameId, responseTurnJson);
-     console.log('игрок  задан, это НЕ старт игры ', playersTurn);
    }
  };
 

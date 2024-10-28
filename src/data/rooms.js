@@ -28,7 +28,6 @@ export const getAvailableRooms = () => {
   return availableRooms;
 };
 
-
 export const updateAvailableRooms = () => {
         const roomsData = getAvailableRooms(); 
         const roomsDataJson = JSON.stringify(roomsData);
